@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import requests
 import json
 import re
@@ -12,12 +14,16 @@ def construct_headers(token):
         "Authorization": f"Bearer {token}"
     }
 
-class SourceClient:
+class SlackEmojiClient:
     def __init__(self, token, path):
         self.token = token
         self.path = path
 
-    def download_emoji(self, url, fname):
+    @property
+    def _headers(self):
+        return construct_headers(self.token)
+
+    def download(self, url, fname):
         response = requests.get(url)
 
         invalidFileNameCharatersRegex = ':|;'
@@ -25,42 +31,46 @@ class SourceClient:
         open(filename, 'wb').write(response.content)
         pass
 
-    @property
-    def headers(self):
-        return construct_headers(self.token)
-
-    def get_emojis(self, url):
-        url = 'https://slack.com/api/emoji.list'
-        response = requests.get(url, headers=self.headers)
+    def upload(self, fname):
+        url = 'https://slack.com/api/emoji.add'
+        response = requests.get(url, headers=self._headers)
         return json.loads(response.content)
 
 
-class DownloadEmoji:
+    def list(self, url):
+        url = 'https://slack.com/api/emoji.list'
+        response = requests.get(url, headers=self._headers)
+        return json.loads(response.content)
+
+
+class BaseEmojiService:
     def __init__(self, token, path):
         self.token = token
         self.path = path
 
     @property
     def client(self):
-        return SourceClient(self.token, self.path)
+        return SlackEmojiClient(self.token, self.path)
 
     def current_emojis(self):
-        response = self.client.get_emojis('https://slack.com/api/emoji.list')
+        response = self.client.list('https://slack.com/api/emoji.list')
         return response.get("emoji", {})
 
-    def makeDir(self):
-        if not os.path.exists(self.path):
-            os.makedirs(self.path)
-
-    def find_existing(self):
+    def find_downloaded(self):
         existing_files = []
         for (dirpath, dirnames, filenames) in walk(self.path):
             existing_files.extend(filenames)
             break
         return existing_files
 
+class DownloadEmoji(BaseEmojiService):
+    def makeDir(self):
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+
+
     def _download(self, skip_list):
-        existing = self.find_existing()
+        existing = self.find_downloaded()
         available = self.current_emojis()
 
         for name in available:
@@ -76,7 +86,7 @@ class DownloadEmoji:
                 continue
             print(f"Downloading {self.path}/{fname}")
 
-            self.client.download_emoji(url, f'{self.path}/{fname}')
+            self.client.download(url, f'{self.path}/{fname}')
 
     def run(self):
         self.makeDir()
@@ -84,12 +94,72 @@ class DownloadEmoji:
         self._download(existing_files)
 
 
-source_token = os.environ["SOURCE_SLACK_API_TOKEN"]
+class UploadEmoji(BaseEmojiService):
 
-print( DownloadEmoji(source_token, 'emoji').run())
+    def run(self):
+        existing = self.current_emojis()
+        files = self.find_downloaded()
+        for fname in files:
+            basename = ext = re.search('([^\.]+)\.', fname).group(1)
+            print(basename, ext)
+            if basename in existing:
+                print(f"Skipping - {basename} already exists")
+                continue
+            else:
+                pass
 
-dest_cookie = os.environ["SOURCE_SLACK_COOKIE"]
-dest_token = os.environ["SOURCE_SLACK_TOKEN"]
+# destinationEmojiNameToUrlDict = getEmojiNameToUrlDict(destinationSlackOrgHeaders)
+
+# url = 'https://slack.com/api/emoji.add'
+# emojiNum = 0
+
+# for emojiFileName in existingEmojiFileNames:
+
+#     emojiFileNameWithoutExtension = emojiFileExtension = re.search('([^\.]+)\.', emojiFileName).group(1)
+
+#     if emojiFileNameWithoutExtension in destinationEmojiNameToUrlDict:
+#         print(f'Emoji with a name of {emojiFileNameWithoutExtension} already exits in destination, skipping upload')
+#         continue
+
+#     emojiUploaded = False
+
+#     while (not emojiUploaded):
+
+#         payload = {
+#             'mode': 'data',
+#             'name': emojiFileNameWithoutExtension
+#         }
+
+#         files = [
+#             ('image', open(f'slackEmoji/{emojiFileName}','rb'))
+#         ]
+
+#         response = requests.request("POST", url, headers=destinationSlackOrgHeaders, data = payload, files = files)
+
+#         responseJson = json.loads(response.content)
+
+#         if responseJson["ok"]:
+#             print(f'Uploaded {emojiFileName}')
+#             emojiUploaded = True
+#         elif not responseJson["ok"] and responseJson["error"] == "error_name_taken":
+#             print(f'Emoji with a name of {emojiFileNameWithoutExtension} already exits')
+#             emojiUploaded = True
+#         elif not responseJson["ok"] and responseJson["error"] == "ratelimited":
+#             retryAfter = response.headers['retry-after']
+#             retryAfterInt = int(retryAfter) + 1
+#             print(f'Exceeded rate limit, waiting {retryAfterInt} seconds before retrying')
+#             time.sleep(retryAfterInt)
+#         else:
+#             print(f'Unexpected failure! {responseJson["error"]}')
+#             print(response)
+#             print(response.headers)
+#             break
+
+
+token = os.environ["SOURCE_SLACK_API_TOKEN"]
+
+# print( DownloadEmoji(token, 'emoji').run())
+print( UploadEmoji(token, 'emoji').run())
 
 
 # for emojiName in emojiNameToUrlDict:
