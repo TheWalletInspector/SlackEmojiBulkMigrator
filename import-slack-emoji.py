@@ -6,13 +6,17 @@ import re
 import os
 import time
 import re
+import logging
 from os import walk
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
+    datefmt="%m-%d %H:%M"
+)
 
 def construct_headers(token):
-    return {
-        "Authorization": f"Bearer {token}"
-    }
+    return {"Authorization": f"Bearer {token}"}
 
 class SourceClient:
     def __init__(self, token, path):
@@ -50,7 +54,7 @@ class DownloadEmoji:
         response = self.client.get_emojis('https://slack.com/api/emoji.list')
         return response.get("emoji", {})
 
-    def makeDir(self):
+    def make_dir(self):
         if not os.path.exists(self.path):
             os.makedirs(self.path)
 
@@ -81,7 +85,7 @@ class DownloadEmoji:
             self.client.download_emoji(url, f'{self.path}/{fname}')
 
     def run(self):
-        self.makeDir()
+        self.make_dir()
         existing_files = self.find_existing()
         self._download(existing_files)
 
@@ -94,7 +98,12 @@ args = parser.parse_args()
 try:
     source_token = os.environ["SOURCE_SLACK_API_TOKEN"]
     DownloadEmoji(source_token, args.path).run()
-except:
-    print("You must choose (at a minimum) import or export (-i or -e)")
-    print("And don't forget to set SOURCE_SLACK_API_TOKEN in your environment")
-    parser.print_help()
+
+except Exception as cause:
+    logging.getLogger(__name__).error(
+        f"{os.path.basename(os.path.dirname(sys.argv[0]))} when running: failed with exception", exc_info=True)
+    raise cause
+    # print("You must choose (at a minimum) import or export (-i or -e)")
+    # print("And don't forget to set SOURCE_SLACK_API_TOKEN in your environment")
+    # parser.print_help()
+
