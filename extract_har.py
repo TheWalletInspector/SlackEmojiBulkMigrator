@@ -13,7 +13,7 @@ logging.basicConfig(
 # make sure the output directory exists before running!
 folder = os.path.join(os.getcwd(), "emojis")
 
-with open("envato_slack_com.har", "r") as f:
+with open("../envato_slack_com.har", "r") as f:
     har = json.loads(f.read())
 
 entries = har["log"]["entries"]
@@ -21,7 +21,6 @@ entries = har["log"]["entries"]
 for entry in entries:
     if entry["_resourceType"] == 'image' and entry["request"]["url"].split("/")[3] == 'T0253B9P9':
         mimetype = entry["response"]["content"]["mimeType"]
-        # filename = entry["request"]["url"].split("/")[-1]
         filename = entry["request"]["url"].split("/")[4]
         filename = filename[:50]
         print(filename)

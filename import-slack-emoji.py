@@ -96,7 +96,8 @@ parser.add_argument('-p', '--path', default="emojis", help="path to put emojis")
 args = parser.parse_args()
 
 try:
-    source_token = os.environ["SOURCE_SLACK_API_TOKEN"]
+    # source_token = os.environ["SOURCE_SLACK_API_TOKEN"]
+    source_token = ''
     DownloadEmoji(source_token, args.path).run()
 
 except Exception as cause:
@@ -106,4 +107,3 @@ except Exception as cause:
     # print("You must choose (at a minimum) import or export (-i or -e)")
     # print("And don't forget to set SOURCE_SLACK_API_TOKEN in your environment")
     # parser.print_help()
-

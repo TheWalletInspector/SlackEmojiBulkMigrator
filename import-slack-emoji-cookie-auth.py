@@ -73,48 +73,48 @@ for emojiName in emojiNameToUrlDict:
 
 # get the existing emoji so we scan skip trying to upload any already existing emoji
 # destinationEmojiNameToUrlDict = getEmojiNameToUrlDict(destinationSlackOrgHeaders)
-#
-# url = 'https://slack.com/api/emoji.add'
-# emojiNum = 0
-#
-# for emojiFileName in existingEmojiFileNames:
-#
-#     emojiFileNameWithoutExtension = emojiFileExtension = re.search('([^\.]+)\.', emojiFileName).group(1)
-#
-#     if emojiFileNameWithoutExtension in destinationEmojiNameToUrlDict:
-#         print(f'Emoji with a name of {emojiFileNameWithoutExtension} already exits in destination, skipping upload')
-#         continue
-#
-#     emojiUploaded = False
-#
-#     while (not emojiUploaded):
-#
-#         payload = {
-#             'mode': 'data',
-#             'name': emojiFileNameWithoutExtension
-#         }
-#
-#         files = [
-#             ('image', open(f'slackEmoji/{emojiFileName}', 'rb'))
-#         ]
-#
-#         response = requests.request("POST", url, headers=destinationSlackOrgHeaders, data=payload, files=files)
-#
-#         responseJson = json.loads(response.content)
-#
-#         if responseJson["ok"]:
-#             print(f'Uploaded {emojiFileName}')
-#             emojiUploaded = True
-#         elif not responseJson["ok"] and responseJson["error"] == "error_name_taken":
-#             print(f'Emoji with a name of {emojiFileNameWithoutExtension} already exits')
-#             emojiUploaded = True
-#         elif not responseJson["ok"] and responseJson["error"] == "ratelimited":
-#             retryAfter = response.headers['retry-after']
-#             retryAfterInt = int(retryAfter) + 1
-#             print(f'Exceeded rate limit, waiting {retryAfterInt} seconds before retrying')
-#             time.sleep(retryAfterInt)
-#         else:
-#             print(f'Unexpected failure! {responseJson["error"]}')
-#             print(response)
-#             print(response.headers)
-#             break
+
+url = 'https://slack.com/api/emoji.add'
+emojiNum = 0
+
+for emojiFileName in existingEmojiFileNames:
+
+    emojiFileNameWithoutExtension = emojiFileExtension = re.search('([^\.]+)\.', emojiFileName).group(1)
+
+    if emojiFileNameWithoutExtension in destinationEmojiNameToUrlDict:
+        print(f'Emoji with a name of {emojiFileNameWithoutExtension} already exits in destination, skipping upload')
+        continue
+
+    emojiUploaded = False
+
+    while (not emojiUploaded):
+
+        payload = {
+            'mode': 'data',
+            'name': emojiFileNameWithoutExtension
+        }
+
+        files = [
+            ('image', open(f'slackEmoji/{emojiFileName}', 'rb'))
+        ]
+
+        response = requests.request("POST", url, headers=destinationSlackOrgHeaders, data=payload, files=files)
+
+        responseJson = json.loads(response.content)
+
+        if responseJson["ok"]:
+            print(f'Uploaded {emojiFileName}')
+            emojiUploaded = True
+        elif not responseJson["ok"] and responseJson["error"] == "error_name_taken":
+            print(f'Emoji with a name of {emojiFileNameWithoutExtension} already exits')
+            emojiUploaded = True
+        elif not responseJson["ok"] and responseJson["error"] == "ratelimited":
+            retryAfter = response.headers['retry-after']
+            retryAfterInt = int(retryAfter) + 1
+            print(f'Exceeded rate limit, waiting {retryAfterInt} seconds before retrying')
+            time.sleep(retryAfterInt)
+        else:
+            print(f'Unexpected failure! {responseJson["error"]}')
+            print(response)
+            print(response.headers)
+            break
