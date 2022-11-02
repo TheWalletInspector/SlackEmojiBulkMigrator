@@ -7,7 +7,7 @@ from emoji_bulk_migrator import slack_api_handler
 
 _CONFIG_PATH = '../config/'
 _CONFIG = 'api_configuration'
-_EMOJI = namedtuple('Emoji', 'url name extension')
+
 _FILE_COUNT = namedtuple('FileCount', 'processed skipped')
 LOGGER = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ def main(path, download, upload):
 
 def _download_files(api_handler, path):
     existing_local_files = _get_existing_local_files(path)
-    existing_remote_files = _get_existing_remote_files(api_handler)
+    existing_remote_files = api_handler.get_remote_emoji_list()
 
     files_processed = 0
     files_skipped = 0
@@ -71,7 +71,7 @@ def _download_files(api_handler, path):
 
 def _upload_files(api_handler, path):
     existing_local_files = _get_existing_local_files(path)
-    existing_remote_files = _get_existing_remote_files(api_handler)
+    existing_remote_files = get_remote_files_list()
     remote_filename = [f'{file.name}{file.extension}' for file in existing_remote_files]
 
     files_processed = 0
@@ -104,20 +104,6 @@ def _get_existing_local_files(path):
         existing_files.extend(filenames)
         break
     return existing_files
-
-
-def _get_existing_remote_files(api_handler):
-    emoji_list_response = api_handler.get_emoji_list()
-    emoji_dict = emoji_list_response.get("emoji")
-    filtered_emoji_records = []
-    for key in emoji_dict:
-        url = emoji_dict[key]
-        if url.startswith('alias:'):
-            continue
-        name = str(key)
-        extension = re.search('\.\w+$', url).group()
-        filtered_emoji_records.append(_EMOJI(url, name, extension))
-    return filtered_emoji_records
 
 
 def _make_dir(path):
