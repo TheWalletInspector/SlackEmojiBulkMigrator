@@ -27,7 +27,7 @@ class SlackHttpHandler:
 
 
     def get_remote_emoji_list(self):
-        emoji_list_response = self._get_emoji_list()
+        emoji_list_response = self._get_emoji_list(session= , base_url=, token=self._token)
         emoji_dict = emoji_list_response.get("emoji")
         filtered_emoji_records = []
 

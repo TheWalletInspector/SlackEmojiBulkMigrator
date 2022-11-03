@@ -12,7 +12,7 @@ _FILE_COUNT = namedtuple('FileCount', 'processed skipped')
 LOGGER = logging.getLogger(__name__)
 
 
-def main(path, download, upload):
+def main(path, protocol, download, upload):
     """Runs the Emoji Migrator APP
 
     Parameters
@@ -31,8 +31,16 @@ def main(path, download, upload):
     source_token = ''
     destination_token = ''
 
+    match protocol:
+        case 'http':
+            print('Hello to you too!')
+        case 'api':
+            api_handler = slack_api_handler.SlackApiHandler(token=source_token)
+        case other:
+            print('No match found')
+
     if download:
-        api_handler = slack_api_handler.SlackApiHandler(token=source_token)
+
         files_count = _download_files(api_handler, path)
         LOGGER.info(f"Downloaded {files_count.processed} new emojis.")
         LOGGER.info(f"Skipped {files_count.skipped} existing emojis.")
