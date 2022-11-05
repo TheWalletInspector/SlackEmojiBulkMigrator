@@ -1,7 +1,7 @@
 import pytest
 import requests
 from mockito import unstub, when, mock
-from emoji_bulk_migrator.slack_api_handler import SlackApiHandler
+from emoji_bulk_migrator.slack_web_api_handler import SlackApiHandler
 
 
 class TestSlackApiHandler:

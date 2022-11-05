@@ -17,7 +17,7 @@ URL_LIST = "https://beyondtheenva-coh7175.slack.com/api/emoji.adminList"
 _EMOJI = namedtuple('Emoji', 'url name extension')
 
 
-class SlackApiHandler:
+class SlackWebApiHandler:
     def __init__(self, **kwargs):
         self._token = kwargs['token']
         self._api_client = self._create_api_client(self._token)
@@ -31,7 +31,6 @@ class SlackApiHandler:
             url = emoji_dict[key]
             if url.startswith('alias:'):
                 continue
-
             name = str(key)
             extension = re.search('\.\w+$', url).group()
             filtered_emoji_records.append(_EMOJI(url, name, extension))

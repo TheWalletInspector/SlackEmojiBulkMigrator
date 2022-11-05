@@ -4,8 +4,10 @@ from backoff import on_exception, expo
 from ratelimit import limits, RateLimitException
 import requests
 import aiohttp
+import re
 import asyncio
 from slack_sdk import WebClient
+from collections import namedtuple
 from time import sleep
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s\t%(message)s")
@@ -15,17 +17,17 @@ BASE_URL = 'https://{team_name}.slack.com'
 EMOJI_ENDPOINT = '/customize/emoji'
 EMOJI_API_LIST = '/api/emoji.adminList'
 
-URL_CUSTOMIZE = "https://beyondtheenva-coh7175.slack.com/customize/emoji"
-URL_ADD = "https://beyondtheenva-coh7175.slack.com/api/emoji.add"
-URL_LIST = "https://beyondtheenva-coh7175.slack.com/api/emoji.adminList"
-
+_URL_CUSTOMIZE = "https://beyondtheenva-coh7175.slack.com/customize/emoji"
+_URL_ADD = "https://beyondtheenva-coh7175.slack.com/api/emoji.add"
+_URL_LIST = "https://beyondtheenva-coh7175.slack.com/api/emoji.adminList"
+_EMOJI = namedtuple('Emoji', 'url name extension')
 
 class SlackHttpHandler:
     def __init__(self, **kwargs):
         self._token = kwargs['token']
 
     def get_remote_emoji_list(self):
-        emoji_list_response = self._get_emoji_list(session=, base_url=, token=self._token)
+        emoji_list_response = self._get_emoji_list(session=, base_url=_URL_LIST, token=self._token)
         emoji_dict = emoji_list_response.get("emoji")
         filtered_emoji_records = []
 
@@ -71,7 +73,7 @@ class SlackHttpHandler:
                     logger.info(f"Skipping emoji \"{name}\", is alias of \"{entry['alias_for']}\"")
                     continue
 
-                entries.append(Emoji(url, name, extension))
+                entries.append(_EMOJI(url, name, extension))
 
             if total_pages is None:
                 total_pages = int(json['paging']['pages'])
