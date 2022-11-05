@@ -23,11 +23,9 @@ URL_LIST = "https://beyondtheenva-coh7175.slack.com/api/emoji.adminList"
 class SlackHttpHandler:
     def __init__(self, **kwargs):
         self._token = kwargs['token']
-        self._api_client = SlackHttpHandler._create_api_client(self._token)
-
 
     def get_remote_emoji_list(self):
-        emoji_list_response = self._get_emoji_list(session= , base_url=, token=self._token)
+        emoji_list_response = self._get_emoji_list(session=, base_url=, token=self._token)
         emoji_dict = emoji_list_response.get("emoji")
         filtered_emoji_records = []
 
@@ -125,7 +123,7 @@ class SlackHttpHandler:
             response.raise_for_status()
 
         except requests.exceptions.RequestException as err:
-            LOGGER.error(f"API call failed with exception: {err}")
+            logger.error(f"API call failed with exception: {err}")
             raise err
 
         return response.content

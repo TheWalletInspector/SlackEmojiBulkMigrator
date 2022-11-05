@@ -8,7 +8,8 @@ from slack_sdk import WebClient
 from collections import namedtuple
 from time import sleep
 
-LOGGER = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format="%(asctime)-15s\t%(message)s")
+logger = logging.getLogger(__name__)
 
 URL_CUSTOMIZE = "https://beyondtheenva-coh7175.slack.com/customize/emoji"
 URL_ADD = "https://beyondtheenva-coh7175.slack.com/api/emoji.add"
@@ -19,7 +20,7 @@ _EMOJI = namedtuple('Emoji', 'url name extension')
 class SlackApiHandler:
     def __init__(self, **kwargs):
         self._token = kwargs['token']
-        self._api_client = SlackApiHandler._create_api_client(self._token)
+        self._api_client = self._create_api_client(self._token)
 
     def get_remote_emoji_list(self):
         emoji_list_response = self._get_emoji_list()
@@ -41,24 +42,24 @@ class SlackApiHandler:
             response = self._api_client.emoji_list()
             return response.data
         except Exception as err:
-            LOGGER.error(f"API call failed with exception: {err}")
+            logger.error(f"API call failed with exception: {err}")
             raise err
 
     def upload_emoji(self, file_name, url):
         try:
             return self._api_client.admin_emoji_add(name=file_name, url=url)
         except Exception as err:
-            LOGGER.error(f"API call failed with exception: {err}")
+            logger.error(f"API call failed with exception: {err}")
             raise err
 
     @staticmethod
-    def download_emoji(url):
+    def get_emoji(url):
         try:
             response = requests.get(url)
             response.raise_for_status()
 
         except requests.exceptions.RequestException as err:
-            LOGGER.error(f"API call failed with exception: {err}")
+            logger.error(f"API call failed with exception: {err}")
             raise err
 
         return response.content
