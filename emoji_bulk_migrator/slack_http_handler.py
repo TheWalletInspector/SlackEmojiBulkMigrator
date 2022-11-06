@@ -82,6 +82,17 @@ class SlackHttpHandler:
 
         return entries
 
+    def upload_emoji(self, emoji_name, file_url):
+        destinationSlackOrgToken = ''
+        destinationSlackOrgCookie = ''
+        headers = {'cookie': destinationSlackOrgCookie,
+                   'Authorization': f'Bearer {destinationSlackOrgToken}'}
+        url = 'https://slack.com/api/emoji.add'
+        data = {
+            'mode': 'data',
+            'name': emoji_name,
+        }
+
     # def upload_emoji(self, session, emoji_name, filename):
     def upload_emoji(self, emoji_name, url):
         session = requests.session()
@@ -101,7 +112,7 @@ class SlackHttpHandler:
         while True:
             with open(url, 'rb') as f:
                 files = {'image': f}
-                resp = session.post(session.url_add, data=data, files=files, allow_redirects=False)
+                resp = session.post(url=session.url_add, data=data, files=files, allow_redirects=False)
 
                 if resp.status_code == 429:
                     wait = int(resp.headers.get('retry-after', 1))

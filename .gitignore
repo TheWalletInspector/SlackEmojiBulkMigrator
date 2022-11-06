@@ -273,5 +273,5 @@ obj/
 
 venv
 venv64
-/Utilities/GoogleAdsGenerateRefreshToken/Pipfile.lock
-/coding_experiments/google_ads_api_migration_poc/results/
+Pipfile.lock
+Pipfile
