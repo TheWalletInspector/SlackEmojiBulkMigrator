@@ -1,7 +1,6 @@
 Emoji Upload/Download scripts
 
-This is python script is designed to make moving emoji's between slack domains easier.
-It provides an upload and download functionality given an API token.
+This python app te enable bulk uploading and dowmloading of emojis from any Slack workspace. It is currently set to use local storage as the intermeidiary.
 
 ### NOTE: This script will only work if you have access to see the emoji page for your source slack org and access to add custom emoji in your destination slack org and you have an app with an API token that allows that access.
 
