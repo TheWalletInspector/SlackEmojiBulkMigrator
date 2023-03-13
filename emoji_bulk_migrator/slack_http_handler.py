@@ -22,6 +22,7 @@ _URL_ADD = "https://beyondtheenva-coh7175.slack.com/api/emoji.add"
 _URL_LIST = "https://beyondtheenva-coh7175.slack.com/api/emoji.adminList"
 _EMOJI = namedtuple('Emoji', 'url name extension')
 
+
 class SlackHttpHandler:
     def __init__(self, **kwargs):
         self._token = kwargs['token']
@@ -41,10 +42,10 @@ class SlackHttpHandler:
             filtered_emoji_records.append(_EMOJI(url, name, extension))
         return filtered_emoji_records
 
-    async def _get_emoji_list(self, session: aiohttp.ClientSession, base_url: str, token: str):
+    @staticmethod
+    async def _get_emoji_list(session: aiohttp.ClientSession, base_url: str, token: str):
         page = 1
         total_pages = None
-
         entries = list()
 
         while total_pages is None or page <= total_pages:
@@ -82,7 +83,8 @@ class SlackHttpHandler:
 
         return entries
 
-    def upload_emoji(self, emoji_name, file_url):
+    @staticmethod
+    def upload_emoji(emoji_name, file_url):
         destinationSlackOrgToken = ''
         destinationSlackOrgCookie = ''
         headers = {'cookie': destinationSlackOrgCookie,
@@ -126,7 +128,6 @@ class SlackHttpHandler:
             response_json = resp.json()
             if not response_json['ok']:
                 print("Error with uploading %s: %s" % (emoji_name, response_json))
-
             break
 
     @staticmethod
