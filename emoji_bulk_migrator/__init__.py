@@ -38,7 +38,7 @@ async def main(path, api_protocol, download, upload):
 
     match api_protocol:
         case 'http':
-            api_handler = SlackHttpHandler(token=http_cookie_token)
+            api_handler = SlackHttpHandler(auth_cookie=http_cookie_token)
         case 'slack_web':
             api_handler = SlackWebApiHandler(token=slack_web_token)
         case _:
@@ -59,7 +59,7 @@ async def main(path, api_protocol, download, upload):
 
 def _download_files(file_handler: LocalFileHandler, api_handler):
     existing_local_files = file_handler.get_existing_local_files()
-    existing_remote_files = api_handler.get_remote_emoji_list()
+    existing_remote_files = api_handler.get_and_filter_remote_emoji_list()
 
     files_processed = 0
     files_skipped = 0

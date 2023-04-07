@@ -32,7 +32,8 @@ class Config:
 
 
 class SlackHttpHandler:
-    def __init__(self, config: Config = None) -> None:
+    def __init__(self, auth_cookie: str, config: Config = None) -> None:
+        self.auth_cookie = auth_cookie
         self.config = Config() if config is None else config
         assert isinstance(self.config, Config)
 
@@ -40,30 +41,15 @@ class SlackHttpHandler:
         self._conn = aiohttp.TCPConnector(
             verify_ssl=self.config.verify_ssl, limit=self.config.tcp_connections
         )
-        self._session = aiohttp.ClientSession(headers={"Cookie": auth_cookie})
+        self._session = aiohttp.ClientSession(headers={"Cookie": self.auth_cookie})
         return self
-        self._token = kwargs['token']
-        self._api_client = self._create_api_client(self._token)
-
-        def _async_session(auth_cookie) -> aiohttp.ClientSession:
-            return
 
     async def __aexit__(self, exc_type, exc, tb):
         await self._session.close()
         await self._conn.close()
 
-    async def request(
-            self,
-            method: str,
-
-            async with _async_session(args.cookie) as
-
-    session:
-
-    async
-
-    def get_remote_emoji_list(self):
-        emoji_list_response = self._get_emoji_list(session=_async_session, base_url=_URL_LIST, token=self._token)
+    def get_and_filter_remote_emoji_list(self):
+        emoji_list_response = self._get_remote_emoji_list(session=self._session, base_url=_URL_LIST, token=self._token)
         emoji_dict = emoji_list_response.get("emoji")
         filtered_emoji_records = []
 
@@ -78,7 +64,7 @@ class SlackHttpHandler:
         return filtered_emoji_records
 
     @staticmethod
-    async def _get_emoji_list(session: aiohttp.ClientSession, base_url: str, token: str):
+    async def _get_remote_emoji_list(session: aiohttp.ClientSession, base_url: str, token: str):
         page = 1
         total_pages = None
         entries = list()
