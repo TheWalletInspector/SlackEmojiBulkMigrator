@@ -22,12 +22,15 @@ _URL_ADD = "https://beyondtheenva-coh7175.slack.com/api/emoji.add"
 _URL_LIST = "https://beyondtheenva-coh7175.slack.com/api/emoji.adminList"
 _EMOJI = namedtuple('Emoji', 'url name extension')
 
+
 class SlackHttpHandler:
     def __init__(self, **kwargs):
         self._token = kwargs['token']
+        self._api_client = self._create_api_client(self._token)
+
 
     def get_remote_emoji_list(self):
-        emoji_list_response = self._get_emoji_list(session=, base_url=_URL_LIST, token=self._token)
+        emoji_list_response = self._get_emoji_list(session=_async_session, base_url=_URL_LIST, token=self._token)
         emoji_dict = emoji_list_response.get("emoji")
         filtered_emoji_records = []
 
@@ -144,3 +147,7 @@ class SlackHttpHandler:
     @staticmethod
     def _create_api_client(_token):
         return WebClient(token=_token)
+
+    @staticmethod
+    def _async_session(auth_cookie) -> aiohttp.ClientSession:
+        return aiohttp.ClientSession(headers={"Cookie": auth_cookie})

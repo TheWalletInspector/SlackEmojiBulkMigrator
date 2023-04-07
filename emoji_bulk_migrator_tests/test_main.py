@@ -27,6 +27,9 @@ existing_remote_files = {
     }
 }
 
+api_handler = mock()
+mock_emoji = mock()
+
 
 class TestMain:
     def teardown(self):
@@ -34,8 +37,7 @@ class TestMain:
 
     def test__main__download_files__when_no_existing_local_files(self):
         existing_local_files = []
-        api_handler = mock()
-        mock_emoji = mock()
+
         when(emoji_bulk_migrator)._get_existing_local_files("path/to/open").thenReturn(existing_local_files)
         when(api_handler).get_emoji_list().thenReturn(existing_remote_files)
         when(emoji_bulk_migrator)._write_local_file(...).thenReturn(None)
@@ -47,8 +49,6 @@ class TestMain:
 
     def test__main__download_files__with_one_existing_local_file(self):
         existing_local_files = ['squirrel.jpg']
-        api_handler = mock()
-        mock_emoji = mock()
         when(emoji_bulk_migrator)._get_existing_local_files("path/to/open").thenReturn(existing_local_files)
         when(api_handler).get_emoji_list().thenReturn(existing_remote_files)
         when(emoji_bulk_migrator)._write_local_file(...).thenReturn(None)
@@ -60,8 +60,6 @@ class TestMain:
 
     def test__main__download_files__with_all_files_locally_exist(self):
         existing_local_files = ['squirrel.jpg', 'bowtie.png']
-        api_handler = mock()
-        mock_emoji = mock()
         when(emoji_bulk_migrator)._get_existing_local_files("path/to/open").thenReturn(existing_local_files)
         when(api_handler).get_emoji_list().thenReturn(existing_remote_files)
         when(emoji_bulk_migrator)._write_local_file(...).thenReturn(None)
@@ -72,7 +70,6 @@ class TestMain:
         verify(emoji_bulk_migrator, times=0)._write_local_file("path/to/open", "squirrel.jpg", mock_emoji)
 
     def test__main__upload_files__when_no_existing_remote_files(self):
-        api_handler = mock()
         existing_local_files = ['squirrel.jpg', 'bowtie.png', 'octoparty.gif', 'flow.png']
         existing_remote_files = []
         when(emoji_bulk_migrator)._get_existing_local_files("path/to/files").thenReturn(existing_local_files)
@@ -87,7 +84,6 @@ class TestMain:
         verify(api_handler, times=1).load_emoji(file_name="flow.png", url="path/to/files/flow.png")
 
     def test__main__upload_files__when_some_existing_remote_files(self):
-        api_handler = mock()
         existing_local_files = ['squirrel.jpg', 'bowtie.png', 'octoparty.gif', 'flow.png']
         when(emoji_bulk_migrator)._get_existing_local_files("path/to/files").thenReturn(existing_local_files)
         when(api_handler).get_emoji_list().thenReturn(existing_remote_files)
@@ -101,7 +97,6 @@ class TestMain:
         verify(api_handler, times=1).load_emoji(file_name="flow.png", url="path/to/files/flow.png")
 
     def test__main__upload_files__when_all_existing_remote_files(self):
-        api_handler = mock()
         existing_local_files = ['squirrel.jpg', 'bowtie.png', 'octoparty.gif', 'flow.png']
         existing_remote_files = {
             "ok": "true",

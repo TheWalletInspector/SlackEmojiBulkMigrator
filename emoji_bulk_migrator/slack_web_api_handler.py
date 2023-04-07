@@ -1,8 +1,8 @@
 import logging
 import re
 
-from backoff import on_exception, expo
-from ratelimit import limits, RateLimitException
+# from backoff import on_exception, expo
+# from ratelimit import limits, RateLimitException
 import requests
 from slack_sdk import WebClient
 from collections import namedtuple

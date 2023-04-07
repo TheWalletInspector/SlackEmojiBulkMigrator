@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import re
@@ -14,7 +15,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)-15s\t%(message)s")
 logger = logging.getLogger(__name__)
 
 
-def main(path, api_protocol, download, upload):
+async def main(path, api_protocol, download, upload):
     """Runs the Emoji Migrator APP
 
     Parameters
@@ -56,7 +57,7 @@ def main(path, api_protocol, download, upload):
     logger.info("Emoji migration complete.")
 
 
-def _download_files(file_handler, api_handler):
+def _download_files(file_handler: LocalFileHandler, api_handler):
     existing_local_files = file_handler.get_existing_local_files()
     existing_remote_files = api_handler.get_remote_emoji_list()
 
@@ -96,7 +97,7 @@ def _upload_files(path, file_handler, api_handler):
         file_url = f'{path}/{local_filename}'
 
         if local_filename in remote_filenames:
-            logger.info(f"File already exists remotely. Skipping emoji \"{file.name}\"")
+            logger.info(f"File already exists remotely. Skipping emoji \"{local_filename}\"")
             files_skipped += 1
             continue
 
