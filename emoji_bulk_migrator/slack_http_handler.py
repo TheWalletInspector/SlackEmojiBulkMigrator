@@ -22,12 +22,45 @@ _URL_ADD = "https://beyondtheenva-coh7175.slack.com/api/emoji.add"
 _URL_LIST = "https://beyondtheenva-coh7175.slack.com/api/emoji.adminList"
 _EMOJI = namedtuple('Emoji', 'url name extension')
 
+from dataclasses import dataclass
+
+
+@dataclass
+class Config:
+    verify_ssl: bool = True
+    tcp_connections: int = 5
+
 
 class SlackHttpHandler:
-    def __init__(self, **kwargs):
+    def __init__(self, config: Config = None) -> None:
+        self.config = Config() if config is None else config
+        assert isinstance(self.config, Config)
+
+    async def __aenter__(self):
+        self._conn = aiohttp.TCPConnector(
+            verify_ssl=self.config.verify_ssl, limit=self.config.tcp_connections
+        )
+        self._session = aiohttp.ClientSession(headers={"Cookie": auth_cookie})
+        return self
         self._token = kwargs['token']
         self._api_client = self._create_api_client(self._token)
 
+        def _async_session(auth_cookie) -> aiohttp.ClientSession:
+            return
+
+    async def __aexit__(self, exc_type, exc, tb):
+        await self._session.close()
+        await self._conn.close()
+
+    async def request(
+            self,
+            method: str,
+
+            async with _async_session(args.cookie) as
+
+    session:
+
+    async
 
     def get_remote_emoji_list(self):
         emoji_list_response = self._get_emoji_list(session=_async_session, base_url=_URL_LIST, token=self._token)
@@ -143,11 +176,3 @@ class SlackHttpHandler:
             raise err
 
         return response.content
-
-    @staticmethod
-    def _create_api_client(_token):
-        return WebClient(token=_token)
-
-    @staticmethod
-    def _async_session(auth_cookie) -> aiohttp.ClientSession:
-        return aiohttp.ClientSession(headers={"Cookie": auth_cookie})
