@@ -1,7 +1,9 @@
 import logging
 
-from backoff import on_exception, expo
-from ratelimit import limits, RateLimitException
+# from backoff import on_exception, expo
+# from ratelimit import limits, RateLimitException
+import string
+
 import requests
 import aiohttp
 import re
@@ -20,9 +22,15 @@ EMOJI_API_LIST = '/api/emoji.adminList'
 _URL_CUSTOMIZE = "https://beyondtheenva-coh7175.slack.com/customize/emoji"
 _URL_ADD = "https://beyondtheenva-coh7175.slack.com/api/emoji.add"
 _URL_LIST = "https://beyondtheenva-coh7175.slack.com/api/emoji.adminList"
-_EMOJI = namedtuple('Emoji', 'url name extension')
 
 from dataclasses import dataclass
+
+
+@dataclass
+class Emoji:
+    url: string
+    name: string
+    extension: string
 
 
 @dataclass
@@ -48,32 +56,17 @@ class SlackHttpHandler:
         await self._session.close()
         await self._conn.close()
 
-    def get_and_filter_remote_emoji_list(self):
-        emoji_list_response = self._get_remote_emoji_list(session=self._session, base_url=_URL_LIST, token=self._token)
-        emoji_dict = emoji_list_response.get("emoji")
-        filtered_emoji_records = []
-
-        for key in emoji_dict:
-            url = emoji_dict[key]
-            if url.startswith('alias:'):
-                continue
-
-            name = str(key)
-            extension = re.search('\.\w+$', url).group()
-            filtered_emoji_records.append(_EMOJI(url, name, extension))
-        return filtered_emoji_records
-
     @staticmethod
-    async def _get_remote_emoji_list(session: aiohttp.ClientSession, base_url: str, token: str):
+    async def get_remote_emoji_list(session: aiohttp.ClientSession, base_url: str, token: str):
         page = 1
         total_pages = None
-        entries = list()
+        filtered_entries = list()
 
         while total_pages is None or page <= total_pages:
             data = {
                 'token': token,
                 'page': page,
-                'count': 100
+                'limit_per_page': 100
             }
             response = await session.post(base_url + EMOJI_API_LIST, data=data)
 
@@ -83,26 +76,29 @@ class SlackHttpHandler:
                 raise Exception(
                     f"Failed to load emoji from {response.request_info.real_url} (status {response.status})")
 
-            json = await response.json()
+            json_response = await response.json()
 
-            for entry in json['emoji']:
+            for entry in json_response['emoji']:
                 url = str(entry['url'])
+                # url = json_response[entry]
                 name = str(entry['name'])
+                # name = str(entry)
                 extension = str(url.split('.')[-1])
+                # extension = re.search('\.\w+$', url).group()
 
                 # slack uses 0/1 to represent false/true in the API
-                if entry['is_alias'] != 0:
+                if url.startswith('alias:'):
                     logger.info(f"Skipping emoji \"{name}\", is alias of \"{entry['alias_for']}\"")
                     continue
 
-                entries.append(_EMOJI(url, name, extension))
+                filtered_entries.append(Emoji(url, name, extension))
 
             if total_pages is None:
-                total_pages = int(json['paging']['pages'])
+                total_pages = int(json_response['paging']['pages'])
 
             page += 1
 
-        return entries
+        return filtered_entries
 
     @staticmethod
     def upload_emoji(emoji_name, file_url):
@@ -135,20 +131,20 @@ class SlackHttpHandler:
         while True:
             with open(url, 'rb') as f:
                 files = {'image': f}
-                resp = session.post(url=session.url_add, data=data, files=files, allow_redirects=False)
+                response = session.post(url=session.url_add, data=data, files=files, allow_redirects=False)
 
-                if resp.status_code == 429:
-                    wait = int(resp.headers.get('retry-after', 1))
+                if response.status_code == 429:
+                    wait = int(response.headers.get('retry-after', 1))
                     print("429 Too Many Requests!, sleeping for %d seconds" % wait)
                     sleep(wait)
                     continue
 
-            resp.raise_for_status()
+            response.raise_for_status()
 
             # Slack returns 200 OK even if upload fails, so check for status.
-            response_json = resp.json()
-            if not response_json['ok']:
-                print("Error with uploading %s: %s" % (emoji_name, response_json))
+            json_response = response.json()
+            if not json_response['ok']:
+                print("Error with uploading %s: %s" % (emoji_name, json_response))
             break
 
     @staticmethod
